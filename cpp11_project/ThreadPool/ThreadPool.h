@@ -5,8 +5,9 @@
 #include <atomic>
 #include "SyncQueue.h"
 
-class ThreadPool {
-public:
+class ThreadPool
+{
+  public:
     using Task = std::function<void()>;
     // initialize the size of thread pool based on thread_number
     ThreadPool(int thread_numbers);
@@ -14,14 +15,13 @@ public:
     // call Stop()
     ~ThreadPool();
 
-
-    void AddTask(const Task& task);
-    void AddTask(Task&& task);
+    void AddTask(const Task &task);
+    void AddTask(Task &&task);
 
     // Stop()
     void Stop();
 
-private:
+  private:
     // initialize threads in loop
     void Start(int thread_num);
 
@@ -30,9 +30,9 @@ private:
 
     // Stop the threads in pool
     void StopThreadPool();
-    
-private:
-    std::list<std::shared_ptr<std::thread> > thread_pool_;
+
+  private:
+    std::list<std::shared_ptr<std::thread>> thread_pool_;
     SyncQueue<Task> queue_;
     std::atomic_bool running_;
     std::once_flag flag_;
