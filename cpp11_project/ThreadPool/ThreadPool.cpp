@@ -4,7 +4,7 @@
 const int MaxTaskCount = 100;
 
 // initialize the size of thread pool based on thread_number
-ThreadPool::ThreadPool(int thread_number = std::thread::hardware_concurrency()) : queue_(MaxTaskCount)
+ThreadPool::ThreadPool(int thread_number) : queue_(MaxTaskCount)
 {
     Start(thread_number);
 }

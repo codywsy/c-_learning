@@ -1,0 +1,58 @@
+cc_config(
+  extra_incs=[
+			#'thirdparty',
+			#'thirdparty/framework/include',
+              ],
+    cppflags= ['-std=c++11'],
+    warnings = [
+        "-Wall",
+        "-Wextra",
+        # disable some warnings enabled by Wextra
+        "-Wno-unused-but-set-variable",
+        "-Wno-unused-parameter",
+        "-Wno-missing-field-initializers",
+        # other useful warnings
+        "-Wendif-labels",
+        "-Wfloat-equal",
+        "-Wformat=2",
+        "-Wframe-larger-than=69632", # A 64k buffer and other small vars
+        "-Wmissing-include-dirs",
+        "-Wpointer-arith",
+        "-Wwrite-strings",
+        # error flags
+        "-Werror=char-subscripts",
+        "-Werror=comments",
+        "-Werror=conversion-null",
+        "-Werror=empty-body",
+        "-Werror=endif-labels",
+        "-Werror=format",
+        "-Werror=format-nonliteral",
+        "-Werror=missing-include-dirs",
+        "-Werror=non-virtual-dtor",
+        "-Werror=overflow",
+        #"-Werror=overloaded-virtual",
+        "-Werror=parentheses",
+        "-Werror=reorder",
+        "-Werror=return-type",
+        "-Werror=sequence-point",
+        "-Werror=sign-compare",
+        "-Werror=switch",
+        "-Werror=type-limits",
+        "-Werror=uninitialized",
+        # Masked it at first
+        #"-Werror=unused-function",
+        "-Werror=unused-label",
+        "-Werror=unused-result",
+        "-Werror=unused-value",
+        "-Werror=unused-variable",
+        "-Werror=write-strings"
+    ],
+    cxx_warnings = [
+        "-Wno-invalid-offsetof",
+        #"-Woverloaded-virtual",
+        "-Wnon-virtual-dtor",
+        "-Wvla",
+        "-Werror=vla",
+        #"-Werror=non-virtual-dtor"
+    ],
+)

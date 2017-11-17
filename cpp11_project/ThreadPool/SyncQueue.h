@@ -3,145 +3,133 @@
 #include <thread>
 #include <condition_variable>
 #include <iostream>
-#include <memory>
+//#include <memory>
 
-template <typename T>
-class SyncQueue
-{
-  public:
-    SyncQueue(int maxSize) : max_size_(maxSize),
-                             to_stop_(false)
-    {
-    }
-    ~SyncQueue();
+#ifndef SYNC_QUEUE_H
+#define SYNC_QUEUE_H
 
-    void Put(const T& task)
-    {
-        Add(task);
-    }
+template<typename T>
+class SyncQueue {
+ public:
+  SyncQueue(int maxSize)
+      : max_size_(maxSize),
+        to_stop_(false) {
+  }
+  ~SyncQueue() {
+  }
 
-    void Put(T&& task)
-    {
-        Add(std::forward<T>(task));
-    }
+  void Put(const T& task) {
+    Add(task);
+  }
 
-    // Add
-    void Add(T &task)
-    {
-        std::unique_lock<std::mutex> lck(mutex_);
-        not_full_.wait(lck, [this] { return to_stop_ || NotFull(); });
-        if (to_stop_)
-        {
-            return;
-        }
+  void Put(T&& task) {
+    Add(std::forward<T>(task));
+  }
 
-        queue_.push_back(task);
-        not_empty_.notify_one();
-    }
+  // Add
+//  void Add(T &task) {
+//    std::unique_lock<std::mutex> lck(mutex_);
+//    not_full_.wait(lck, [this] {return to_stop_ || NotFull();});
+//    if (to_stop_) {
+//      return;
+//    }
+//
+//    queue_.push_back(task);
+//    not_empty_.notify_one();
+//  }
 
-    // Take
-    void Take(T &task)
-    {
-        std::unique_lock<std::mutex> lck(mutex_);
-        not_empty_.wait(lck, [this] { return to_stop_ || NotEmpty(); });
-        if (to_stop_)
-        {
-            return;
-        }
-
-        task = queue_.front();
-        queue_.pop_front();
-        not_full_.notify_one();
+// Take
+  void Take(T &task) {
+    std::unique_lock<std::mutex> lck(mutex_);
+    not_empty_.wait(lck, [this] {return to_stop_ || NotEmpty();});
+    if (to_stop_) {
+      return;
     }
 
-    void Take(const std::list<T> &tasks)
-    {
-        std::unique_lock<std::mutex> lck(mutex_);
-        not_empty_.wait(lck, [this] { return to_stop_ || NotEmpty(); });
-        if (to_stop_)
-        {
-            return;
-        }
+    task = queue_.front();
+    queue_.pop_front();
+    not_full_.notify_one();
+  }
 
-        tasks = std::move(queue_);
-        not_full_.notify_one();
+  void Take(std::list<T> &tasks) {
+    std::unique_lock<std::mutex> lck(mutex_);
+    not_empty_.wait(lck, [this] {return to_stop_ || NotEmpty();});
+    if (to_stop_) {
+      return;
     }
 
-    // Stop
-    void Stop()
-    {
-        {
-            std::lock_guard<std::mutex> lck(mutex_);
-            to_stop_ = true;
-        }
+    tasks = std::move(queue_);
+    not_full_.notify_one();
+  }
 
-        not_empty_.notify_all();
-        not_full_.notify_all();
+  // Stop
+  void Stop() {
+    {
+      std::lock_guard<std::mutex> lck(mutex_);
+      to_stop_ = true;
     }
 
-    // IsEmpty
-    bool IsEmpty()
-    {
-        std::lock_guard<std::mutex> lck(mutex_);
-        return queue_.empty();
+    not_empty_.notify_all();
+    not_full_.notify_all();
+  }
+
+  // IsEmpty
+  bool IsEmpty() {
+    std::lock_guard<std::mutex> lck(mutex_);
+    return queue_.empty();
+  }
+
+  // IsFull
+  bool Full() {
+    std::lock_guard<std::mutex> lck(mutex_);
+    return queue_.size() == max_size_;
+  }
+
+  size_t Size() {
+    std::lock_guard<std::mutex> lck(mutex_);
+    return queue_.size();
+  }
+
+  int Count() {
+    return queue_.size();
+  }
+
+ private:
+  bool NotEmpty() {
+    bool empty = queue_.empty();
+    if (empty) {
+      std::cout << "Buffer is empty!" << std::endl;
+    }
+    return !empty;
+  }
+
+  bool NotFull() {
+    bool full = (queue_.size() == max_size_);
+    if (full) {
+      std::cout << "Buffer is full!" << std::endl;
+    }
+    return !full;
+  }
+
+  template<typename F>
+  void Add(F&& task) {
+    std::unique_lock<std::mutex> lck(mutex_);
+    not_full_.wait(lck, [this] {return to_stop_ || NotFull();});
+    if (to_stop_) {
+      return;
     }
 
-    // IsFull
-    bool Full()
-    {
-        std::lock_guard<std::mutex> lck(mutex_);
-        return queue_.size() == max_size_;
-    }
+    queue_.push_back(std::forward<F>(task));
+    not_empty_.notify_one();
+  }
 
-    size_t Size()
-    {
-        std::lock_guard<std::mutex> lck(mutex_);
-        return queue_.size();
-    }
-
-    int Count()
-    {
-        return queue_.size();
-    }
-
-  private:
-    bool NotEmpty()
-    {
-        bool empty = queue_.empty();
-        if (empty)
-        {
-            std::cout << "Buffer is empty!" << std::endl;
-        }
-        return !empty;
-    }
-
-    bool NotFull()
-    {
-        bool full = (queue_.size() == max_size_);
-        if (full)
-        {
-            std::cout << "Buffer is full!" << std::endl;
-        }
-        return !full;
-    }
-
-    // template<typename F>
-    // void Add(F&& task){
-    //     std::unique_lock<std::mutex> lck(mutex_);
-    //     not_full_.wait(lck, [this]{return to_stop_ || NotFull();});
-    //     if(to_stop_){
-    //         return;
-    //     }
-
-    //     queue_.push_back(std::forward<F> (task));
-    //     not_empty_.notify_one();
-    // }
-
-  private:
-    std::list<T> queue_;
-    std::mutex mutex_;
-    std::condition_variable not_empty_;
-    std::condition_variable not_full_;
-    int max_size_;
-    bool to_stop_;
+ private:
+  std::list<T> queue_;
+  std::mutex mutex_;
+  std::condition_variable not_empty_;
+  std::condition_variable not_full_;
+  int max_size_;
+  bool to_stop_;
 };
+
+#endif
