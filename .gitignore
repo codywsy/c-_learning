@@ -3,3 +3,4 @@ cpp11_project/blade-bin
 cpp11_project/.*
 
 cpp11_project/ThreadPool/.*
+*.out
