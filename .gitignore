@@ -4,3 +4,6 @@ cpp11_project/.*
 
 cpp11_project/ThreadPool/.*
 *.out
+
+test/SocketByLibevent/bin
+*.vscode*

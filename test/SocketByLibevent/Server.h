@@ -1,41 +1,41 @@
 #ifndef SERVER_H_
 #define SERVER_H_
 
-#include <string>
-#include <functional>
-#include <vector>
-#include <cassert>
-#include <thread>
 #include <event.h>
+#include <cassert>
+#include <functional>
+#include <string>
+#include <thread>
+#include <vector>
 
+class Server {
+ public:
+  Server();
+  virtual ~Server();
 
-class Server
-{
-  public:
+  bool Init();
+  void Join();
 
-    Server();
-    virtual ~Server();
+  void OnEvent(int sock_fd, short event);
+  void OnRead(bufferevent* bev);
+  void OnWrite(bufferevent* bev);
+  void OnError(bufferevent* bev, short what);
 
-    bool Start();
-    bool Init();
-    bool InitSocket();
-    bool InitEvent();
+ private:
+  bool Start();
+  void Connect();
 
-    void Connect();
+  bool InitSocket();
+  bool InitEvent();
 
-    void OnEvent(int sock_fd, short event);
-    void OnRead(bufferevent* bev);
-    void OnWrite(bufferevent* bev);
-    void OnError(bufferevent* bev, short what);
-
-  private:
-    int sock_fd_;
-    struct event_base* base_;
-    struct event* listen_ev_;
-    struct bufferevent* buff_ev_;
-    std::unique_ptr<std::thread> thread_;
-    std::string data_;
-    bool quit_;
+ private:
+  int sock_fd_;
+  struct event_base* base_;
+  struct event* listen_ev_;
+  struct bufferevent* buff_ev_;
+  std::unique_ptr<std::thread> thread_;
+  std::string data_;
+  bool quit_;
 };
 
 #endif

@@ -1,12 +1,25 @@
-SHARE_LIB_PREFIX=/usr/local/lib
-CC=c++
+CC = g++
 
-all: 
-	g++ -g Server.cpp -o test --std=c++11 \
-	-L/usr/local/lib -levent_core -lpthread
+DEP_LDFLAGS = /usr/local/lib
+
+DEP_LDLIBS = -levent_core -lpthread
+
+TARGET = Server Client
+
+all: $(TARGET)
+
+Server: Server.cpp
+	$(CC) -g $^ -o bin/$@ --std=c++11 \
+	-L$(DEP_LDFLAGS) $(DEP_LDLIBS)
+
+Client: Client.cpp
+	$(CC) -g $^ -o bin/$@ --std=c++11 \
+	-L$(DEP_LDFLAGS) $(DEP_LDLIBS)
+
+.PHONY : all clean
 
 clean: 
-	rm -f test
+	rm -f $(TARGET)
 	
 
 
